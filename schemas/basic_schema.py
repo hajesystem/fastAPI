@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-class Basic(BaseModel):
+class BasicSchema(BaseModel):
     id: Optional[int]
     title: str
     descript: str

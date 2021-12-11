@@ -1,7 +1,6 @@
 from fastapi import APIRouter, status
 from typing import Optional
-from pydantic import BaseModel
-from schemas.basic import Basic
+from schemas.basic_schema import BasicSchema
 
 router = APIRouter(prefix="/basic", tags=["Basic"])
 
@@ -29,5 +28,5 @@ def comment(id, limit=10):
 
 @router.post('/post', status_code=status.HTTP_201_CREATED)
 # post 요청으로 변수를 가져온다.
-def create(basic: Basic):
+def create(basic: BasicSchema):
     return {'title': basic.title, 'descript': basic.descript, 'option': basic.option}
