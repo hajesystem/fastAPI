@@ -1,8 +1,7 @@
 from fastapi import FastAPI, status
 import uvicorn
 # 라우터 import
-from routers import basic
-from routers import users
+from routers import basic, users, validation
 # DATABASE
 from models import engine, users_model
 
@@ -26,6 +25,7 @@ users_model.Base.metadata.create_all(engine)
 # routers
 app.include_router(basic.router)
 app.include_router(users.router)
+app.include_router(validation.router)
 
 
 @app.get('/', tags=['Main'], status_code=status.HTTP_200_OK)

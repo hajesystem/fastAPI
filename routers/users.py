@@ -1,3 +1,5 @@
+# ORM을 이용한 FastAPI 구성
+
 from fastapi import APIRouter, status, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 # 데이터베이스
@@ -21,7 +23,7 @@ def get_all():
 @router.get('/{id}', status_code=status.HTTP_200_OK)
 def get(id: str):
     sql = select(UsersModel).where(UsersModel.id == id)
-    result = db_session.execute(sql).one()
+    result = db_session.execute(sql).all()
     return result
 
 
