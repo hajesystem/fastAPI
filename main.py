@@ -1,10 +1,8 @@
 from fastapi import FastAPI, status
 import uvicorn
 # 라우터 import
-from routers import basic, users, validation
+from routers import basic, user, validation, authentication
 # DATABASE
-from models import engine, users_model
-
 
 description = """
 Python Backend
@@ -19,13 +17,14 @@ Python Backend
 
 app = FastAPI(title="FastAPI", description=description, version="0.0.1")
 
-# DATABASE CREATE TABLE
-users_model.Base.metadata.create_all(engine)
+# DATABASE CREATE TABLE ==> 외부 파일로 변경(별도로 실행) : python create_databases.py
+# user_model.Base.metadata.create_all(engine)
 
 # routers
 app.include_router(basic.router)
-app.include_router(users.router)
+app.include_router(user.router)
 app.include_router(validation.router)
+app.include_router(authentication.router)
 
 
 @app.get('/', tags=['Main'], status_code=status.HTTP_200_OK)

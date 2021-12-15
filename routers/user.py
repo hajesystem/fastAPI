@@ -1,4 +1,5 @@
 # ORM을 이용한 FastAPI 구성
+from typing import List
 from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,34 +8,39 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi.encoders import jsonable_encoder
 
 # 데이터베이스
-from models.users_model import UsersModel
 from sqlalchemy import insert, select, delete, update
+from models.user_model import UserModel
 from models import db_session
 
 # parameter schema
-from schemas.users_schema import UsersSchema
+from schemas.user_schema import UserIn, UserOut
 
 
 router = APIRouter(prefix='/user', tags=['User'])
 
+# response_model ==> 반환할 결과물을 정의한 스카마 형태로 반환
 
-@router.get('/', status_code=status.HTTP_200_OK)
+
+@router.get('/', status_code=status.HTTP_200_OK, response_model=List[UserOut])
 def get_all():
-    sql = select(UsersModel)
-    # db_session.execute(sql).all() ==> [{},{}] 배열 반환
-    # result = db_session.execute(sql).all()
-    result = db_session.execute(sql).all()
-    return result
+    try:
+        user_all = select(UserModel)
+        # db_session.execute(user_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
+        result = db_session.execute(user_all).scalars().all()
+        return result
+    except SQLAlchemyError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=jsonable_encoder(error))
 
 
 @router.get('/{id}')
 def get(id: int):
     try:
-        select_sql = select(UsersModel).where(UsersModel.id == id)
-        # db_session.execute(sql).one() ==> {}
-        # db_session.execute(sql).first() ==> {'DbModel':{}}
-        # db_session.execute(sql).scalar() ==> null 또는 {}
-        result = db_session.execute(select_sql).scalar()
+        user = select(UserModel).where(UserModel.id == id)
+        # db_session.execute(user).one() ==> {...}
+        # db_session.execute(user).first() ==> {'DbModel':{...}}
+        # db_session.execute(user).scalar() ==> null 또는 {}
+        result = db_session.execute(user).scalar()
         if not result:
             # raise 강제로 error 발생시킨다.
             raise HTTPException(
@@ -47,10 +53,11 @@ def get(id: int):
 
 
 @router.post('/')
-def create(user: UsersSchema):
+def create(user: UserIn):
     try:
-        insert_sql = insert(UsersModel).values(user=user.user, name=user.name)
-        db_session.execute(insert_sql)
+        add_user = insert(UserModel).values(
+            user=user.user, password=user.password)
+        db_session.execute(add_user)
         db_session.commit()
         db_session.close()
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=jsonable_encoder(user))
@@ -64,13 +71,13 @@ def create(user: UsersSchema):
 @router.delete('/{id}')
 def remove(id: int):
     try:
-        select_sql = select(UsersModel).where(UsersModel.id == id)
-        result = db_session.execute(select_sql).scalar()
+        user = select(UserModel).where(UserModel.id == id)
+        result = db_session.execute(user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})
-        delete_sql = delete(UsersModel).where(UsersModel.id == id)
-        db_session.execute(delete_sql)
+        del_user = delete(UserModel).where(UserModel.id == id)
+        db_session.execute(del_user)
         db_session.commit()
         db_session.close()
         return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
@@ -82,16 +89,16 @@ def remove(id: int):
 
 
 @router.put('/{id}')
-def edit(id: int, user: UsersSchema):
+def edit(id: int, user: UserIn):
     try:
-        select_sql = select(UsersModel).where(UsersModel.id == id)
-        result = db_session.execute(select_sql).scalar()
+        user = select(UserModel).where(UserModel.id == id)
+        result = db_session.execute(user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})
-        update_sql = update(UsersModel).where(
-            UsersModel.id == id).values(user=user.user, name=user.name)
-        db_session.execute(update_sql)
+        update_user = update(UserModel).where(
+            UserModel.id == id).values(user=user.user, password=user.password)
+        db_session.execute(update_user)
         db_session.commit()
         db_session.close()
         return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(user))
