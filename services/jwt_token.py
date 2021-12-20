@@ -1,22 +1,21 @@
-from typing import Optional
 import jwt
-from .. import config
+from fastapi import HTTPException, status
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status, Cookie
+import config
+import sys
 
-secret = config.SECRET_KEY
-algorithms = config.ALGORITHM
+# Adds higher directory to python modules path. config.py를 가져오기위한 설정
+sys.path.append("..")
 
 
 def encode_access_token(user):
     payload = {
-        'exp': datetime.utcnow()+timedelta(seconds=config.ACCESS_TOKEN_TIME),
-        'iat': datetime.utcnow,  # 토큰 생성시간
+        'exp': datetime.utcnow() + timedelta(seconds=config.ACCESS_TOKEN_TIME),
+        'iat': datetime.utcnow(),
         'scope': 'access_token',
         'user': user
     }
-    # 단축형으로 사용함. payload = payload
-    return jwt.encode(payload, secret, algorithms)
+    return jwt.encode(payload, config.SECRET_KEY, algorithm=config.ALGORITHM)
 
 
 def encode_refresh_token(user):
@@ -26,12 +25,13 @@ def encode_refresh_token(user):
         'scope': 'refresh_token',
         'user': user
     }
-    return jwt.encode(payload, secret, algorithms)
+    return jwt.encode(payload, config.SECRET_KEY, algorithm=config.ALGORITHM)
 
 
 def decode_access_token(token):
     try:
-        payload = jwt.decode(token, secret, algorithms)
+        payload = jwt.decode(token, config.SECRET_KEY,
+                             algorithms=[config.ALGORITHM])
         if (payload['scope'] != 'access_token'):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid scope for token')
@@ -46,7 +46,8 @@ def decode_access_token(token):
 
 def refresh_token(refresh_token):
     try:
-        payload = jwt.decode(refresh_token, secret, algorithms)
+        payload = jwt.decode(refresh_token, config.SECRET_KEY,
+                             algorithm=config.ALGORITHM)
         if(payload['scope'] != 'refresh_token'):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid scope for token')
@@ -61,5 +62,5 @@ def refresh_token(refresh_token):
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid refresh token')
 
 
-def cookie_token(access_token: Optional[str] = Cookie(None)):
-    return decode_access_token(access_token)
+# def cookie_token(access_token: Optional[str] = Cookie(None)):
+#     return decode_access_token(access_token)

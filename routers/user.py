@@ -1,8 +1,11 @@
 # ORM을 이용한 FastAPI 구성
 from typing import List
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
+
+# password hashing
+import bcrypt
 
 # Pydantic 모델과 같은 Object를 수신하고 JSON 호환 버전을 반환
 from fastapi.encoders import jsonable_encoder
@@ -14,6 +17,7 @@ from models import db_session
 
 # parameter schema
 from schemas.user_schema import UserIn, UserOut
+from services.dependencies import cookie_token
 
 
 router = APIRouter(prefix='/user', tags=['User'])
@@ -34,7 +38,8 @@ def get_all():
 
 
 @router.get('/{id}')
-def get(id: int):
+def get(id: int, payload=Depends(cookie_token)):
+    print(payload)
     try:
         user = select(UserModel).where(UserModel.id == id)
         # db_session.execute(user).one() ==> {...}
@@ -44,7 +49,7 @@ def get(id: int):
         if not result:
             # raise 강제로 error 발생시킨다.
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail='user id : {id} not found')
+                status_code=status.HTTP_404_NOT_FOUND, detail=f'{id} not found')
         return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
 
     except SQLAlchemyError as error:
@@ -55,8 +60,10 @@ def get(id: int):
 @router.post('/')
 def create(user: UserIn):
     try:
+        hash_password = (bcrypt.hashpw(user.password.encode(
+            'UTF-8'), bcrypt.gensalt(12))).decode('utf-8')
         add_user = insert(UserModel).values(
-            user=user.user, password=user.password)
+            user=user.user, password=hash_password)
         db_session.execute(add_user)
         db_session.commit()
         db_session.close()

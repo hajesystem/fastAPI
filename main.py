@@ -1,5 +1,6 @@
 from fastapi import FastAPI, status
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 # 라우터 import
 from routers import basic, user, validation, authentication
 # DATABASE
@@ -16,6 +17,16 @@ Python Backend
 """
 
 app = FastAPI(title="FastAPI", description=description, version="0.0.1")
+
+
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # DATABASE CREATE TABLE ==> 외부 파일로 변경(별도로 실행) : python create_databases.py
 # user_model.Base.metadata.create_all(engine)
