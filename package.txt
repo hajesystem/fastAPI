@@ -4,3 +4,4 @@ SQLAlchemy
 pymysql
 pyjwt
 bcrypt
+python-multipart

@@ -17,7 +17,7 @@ from models import db_session
 
 # parameter schema
 from schemas.user_schema import UserIn, UserOut
-from services.dependencies import cookie_token
+from services.jwt_token import get_current_user_token
 
 
 router = APIRouter(prefix='/user', tags=['User'])
@@ -26,7 +26,7 @@ router = APIRouter(prefix='/user', tags=['User'])
 
 
 @router.get('/', status_code=status.HTTP_200_OK, response_model=List[UserOut])
-def get_all():
+def get_all(payload=Depends(get_current_user_token)):
     try:
         user_all = select(UserModel)
         # db_session.execute(user_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
@@ -38,8 +38,7 @@ def get_all():
 
 
 @router.get('/{id}')
-def get(id: int, payload=Depends(cookie_token)):
-    print(payload)
+def get(id: int, payload=Depends(get_current_user_token)):
     try:
         user = select(UserModel).where(UserModel.id == id)
         # db_session.execute(user).one() ==> {...}
@@ -58,7 +57,7 @@ def get(id: int, payload=Depends(cookie_token)):
 
 
 @router.post('/')
-def create(user: UserIn):
+def create(user: UserIn, payload=Depends(get_current_user_token)):
     try:
         hash_password = (bcrypt.hashpw(user.password.encode(
             'UTF-8'), bcrypt.gensalt(12))).decode('utf-8')
@@ -76,7 +75,7 @@ def create(user: UserIn):
 
 
 @router.delete('/{id}')
-def remove(id: int):
+def remove(id: int, payload=Depends(get_current_user_token)):
     try:
         user = select(UserModel).where(UserModel.id == id)
         result = db_session.execute(user).scalar()
@@ -96,7 +95,7 @@ def remove(id: int):
 
 
 @router.put('/{id}')
-def edit(id: int, user: UserIn):
+def edit(id: int, user: UserIn, payload=Depends(get_current_user_token)):
     try:
         user = select(UserModel).where(UserModel.id == id)
         result = db_session.execute(user).scalar()

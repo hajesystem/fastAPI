@@ -18,3 +18,10 @@ Base = declarative_base()
 
 # query_property() : select 할 속성을 Base에 미리 담아둔다
 # Base.query = db_session.query_property()
+
+def get_db():
+    try:
+        db = db_session()
+        yield db
+    finally:
+        db.close()
