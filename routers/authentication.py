@@ -16,7 +16,7 @@ from fastapi.encoders import jsonable_encoder
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
-@router.post("/create-token", response_model=UserOut)
+@router.post("/create-token", status_code=status.HTTP_200_OK, response_model=UserOut)
 # inputtype ==> { username: name, password: password }
 def login(response: Response, user: OAuth2PasswordRequestForm = Depends()):
     try:

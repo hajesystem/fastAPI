@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 # password hashing
 import bcrypt
@@ -13,7 +14,7 @@ from fastapi.encoders import jsonable_encoder
 # 데이터베이스
 from sqlalchemy import insert, select, delete, update
 from models.user_model import UserModel
-from models import db_session
+from models import get_db
 
 # parameter schema
 from schemas.user_schema import UserIn, UserOut
@@ -26,11 +27,11 @@ router = APIRouter(prefix='/user', tags=['User'])
 
 
 @router.get('/', status_code=status.HTTP_200_OK, response_model=List[UserOut])
-def get_all(current_user=Depends(get_current_user_token)):
+def get_all(current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         select_all = select(UserModel)
-        # db_session.execute(select_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
-        result = db_session.execute(select_all).scalars().all()
+        # db.execute(select_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
+        result = db.execute(select_all).scalars().all()
         return result
     except SQLAlchemyError as error:
         raise HTTPException(
@@ -38,13 +39,13 @@ def get_all(current_user=Depends(get_current_user_token)):
 
 
 @router.get('/{id}')
-def get(id: int, current_user=Depends(get_current_user_token)):
+def get(id: int, current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         select_user = select(UserModel).where(UserModel.id == id)
-        # db_session.execute(select_user).one() ==> {...}
-        # db_session.execute(select_user).first() ==> {'DbModel':{...}}
-        # db_session.execute(select_user).scalar() ==> null 또는 {}
-        result = db_session.execute(select_user).scalar()
+        # db.execute(select_user).one() ==> {...}
+        # db.execute(select_user).first() ==> {'DbModel':{...}}
+        # db.execute(select_user).scalar() ==> null 또는 {}
+        result = db.execute(select_user).scalar()
         if not result:
             # raise 강제로 error 발생시킨다.
             raise HTTPException(
@@ -57,59 +58,56 @@ def get(id: int, current_user=Depends(get_current_user_token)):
 
 
 @router.post('/')
-def create(user: UserIn):
+def create(user: UserIn, db: Session = Depends(get_db)):
     try:
         hash_password = (bcrypt.hashpw(user.password.encode(
             'UTF-8'), bcrypt.gensalt(12))).decode('utf-8')
         add_user = insert(UserModel).values(
             user=user.user, password=hash_password)
-        db_session.execute(add_user)
-        db_session.commit()
-        db_session.close()
+        db.execute(add_user)
+        db.commit()
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=jsonable_encoder(user))
 
     except SQLAlchemyError as error:
-        db_session.rollback()
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=jsonable_encoder(error))
 
 
 @router.delete('/{id}')
-def remove(id: int, current_user=Depends(get_current_user_token)):
+def remove(id: int, current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         select_user = select(UserModel).where(UserModel.id == id)
-        result = db_session.execute(select_user).scalar()
+        result = db.execute(select_user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})
         del_user = delete(UserModel).where(UserModel.id == id)
-        db_session.execute(del_user)
-        db_session.commit()
-        db_session.close()
+        db.execute(del_user)
+        db.commit()
         return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
 
     except SQLAlchemyError as error:
-        db_session.rollback()
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=jsonable_encoder(error))
 
 
 @router.put('/{id}')
-def edit(id: int, user: UserIn, current_user=Depends(get_current_user_token)):
+def edit(id: int, user: UserIn, current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         select_user = select(UserModel).where(UserModel.id == id)
-        result = db_session.execute(select_user).scalar()
+        result = db.execute(select_user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})
         update_user = update(UserModel).where(
             UserModel.id == id).values(user=user.user, password=user.password)
-        db_session.execute(update_user)
-        db_session.commit()
-        db_session.close()
+        db.execute(update_user)
+        db.commit()
         return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(user))
 
     except SQLAlchemyError as error:
-        db_session.rollback()
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=jsonable_encoder(error))
