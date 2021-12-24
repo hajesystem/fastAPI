@@ -26,11 +26,11 @@ router = APIRouter(prefix='/user', tags=['User'])
 
 
 @router.get('/', status_code=status.HTTP_200_OK, response_model=List[UserOut])
-def get_all(payload=Depends(get_current_user_token)):
+def get_all(current_user=Depends(get_current_user_token)):
     try:
-        user_all = select(UserModel)
-        # db_session.execute(user_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
-        result = db_session.execute(user_all).scalars().all()
+        select_all = select(UserModel)
+        # db_session.execute(select_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
+        result = db_session.execute(select_all).scalars().all()
         return result
     except SQLAlchemyError as error:
         raise HTTPException(
@@ -38,13 +38,13 @@ def get_all(payload=Depends(get_current_user_token)):
 
 
 @router.get('/{id}')
-def get(id: int, payload=Depends(get_current_user_token)):
+def get(id: int, current_user=Depends(get_current_user_token)):
     try:
-        user = select(UserModel).where(UserModel.id == id)
-        # db_session.execute(user).one() ==> {...}
-        # db_session.execute(user).first() ==> {'DbModel':{...}}
-        # db_session.execute(user).scalar() ==> null 또는 {}
-        result = db_session.execute(user).scalar()
+        select_user = select(UserModel).where(UserModel.id == id)
+        # db_session.execute(select_user).one() ==> {...}
+        # db_session.execute(select_user).first() ==> {'DbModel':{...}}
+        # db_session.execute(select_user).scalar() ==> null 또는 {}
+        result = db_session.execute(select_user).scalar()
         if not result:
             # raise 강제로 error 발생시킨다.
             raise HTTPException(
@@ -57,7 +57,7 @@ def get(id: int, payload=Depends(get_current_user_token)):
 
 
 @router.post('/')
-def create(user: UserIn, payload=Depends(get_current_user_token)):
+def create(user: UserIn):
     try:
         hash_password = (bcrypt.hashpw(user.password.encode(
             'UTF-8'), bcrypt.gensalt(12))).decode('utf-8')
@@ -75,10 +75,10 @@ def create(user: UserIn, payload=Depends(get_current_user_token)):
 
 
 @router.delete('/{id}')
-def remove(id: int, payload=Depends(get_current_user_token)):
+def remove(id: int, current_user=Depends(get_current_user_token)):
     try:
-        user = select(UserModel).where(UserModel.id == id)
-        result = db_session.execute(user).scalar()
+        select_user = select(UserModel).where(UserModel.id == id)
+        result = db_session.execute(select_user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})
@@ -95,10 +95,10 @@ def remove(id: int, payload=Depends(get_current_user_token)):
 
 
 @router.put('/{id}')
-def edit(id: int, user: UserIn, payload=Depends(get_current_user_token)):
+def edit(id: int, user: UserIn, current_user=Depends(get_current_user_token)):
     try:
-        user = select(UserModel).where(UserModel.id == id)
-        result = db_session.execute(user).scalar()
+        select_user = select(UserModel).where(UserModel.id == id)
+        result = db_session.execute(select_user).scalar()
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
                                 'msg': f'{id} not found'})

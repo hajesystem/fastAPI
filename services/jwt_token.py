@@ -58,14 +58,14 @@ def get_current_user_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, config.SECRET_KEY,
                              algorithms=[config.ALGORITHM])
-        user_name: str = payload['user']
-        if user_name is None:
+        current_user: str = payload['user']
+        if current_user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid access token')
         elif(payload['scope'] != 'access_token'):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid scopes for token')
-        return user_name
+        return current_user
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Access token expired')

@@ -13,8 +13,6 @@ import bcrypt
 # Pydantic 모델과 같은 Object를 수신하고 JSON 호환 버전을 반환
 from fastapi.encoders import jsonable_encoder
 
-from schemas.user_schema import UserIn
-
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
