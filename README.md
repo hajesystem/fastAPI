@@ -10,6 +10,7 @@
   pip install SQLAlchemy\
   pip install pymysql\
   pip install pyjwt\
-  pip install bcrypt
+  pip install bcrypt\
+  pip install python-multipart
 
 - SQLAlchemy style 2.0
