@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Response
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
-from models.user_model import UserModel
+from models.db_model import UserModel
 from models import db_session
 from services.jwt_token import refresh_token, encode_access_token, encode_refresh_token
 from schemas.user_schema import UserIn, UserOut

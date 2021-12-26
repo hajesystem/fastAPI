@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 
 # 데이터베이스
 from sqlalchemy import insert, select, delete, update
-from models.user_model import UserModel
+from models.db_model import UserModel
 from models import get_db
 
 # parameter schema

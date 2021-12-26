@@ -1,4 +1,4 @@
 # DATABASE CREATE TABLE
-from models import engine, user_model
+from models import db_model, engine
 
-user_model.Base.metadata.create_all(bind=engine)
+db_model.Base.metadata.create_all(bind=engine)
