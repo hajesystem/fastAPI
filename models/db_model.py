@@ -18,6 +18,7 @@ class InfoModel(Base):
     name = Column(String(80))
     email = Column(String(80), unique=True)
     phone = Column(String(80), unique=True)
+    user_id = Column(Integer)
 
 
 class ToDoModel(Base):
