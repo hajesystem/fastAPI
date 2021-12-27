@@ -17,7 +17,7 @@ from models.db_model import UserModel
 from models import get_db
 
 # parameter schema
-from schemas.user_schema import UserIn, UserOut
+from schemas.user_schema import UserIn, UserInfoOut, UserOut
 from services.jwt_token import get_current_user_token
 
 
@@ -26,21 +26,21 @@ router = APIRouter(prefix='/user', tags=['User'])
 # response_model ==> 반환할 결과물을 정의한 스카마 형태로 반환
 
 
-@router.get('/', status_code=status.HTTP_200_OK, response_model=List[UserOut])
+@router.get('/', status_code=status.HTTP_200_OK)
 def get_all(current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         select_all = select(UserModel)
-        # db.execute(select_all).all() ==> [{"Model": {...},{...} }}] 배열 반환
         result = db.execute(select_all).scalars().all()
-        return result
+        return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=jsonable_encoder(error))
 
 
-@router.get('/{id}')
+@router.get('/{id}',  response_model=UserOut)
 def get(id: int, current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
+        print(id)
         select_user = select(UserModel).where(UserModel.id == id)
         # db.execute(select_user).one() ==> {...}
         # db.execute(select_user).first() ==> {'DbModel':{...}}
@@ -50,7 +50,7 @@ def get(id: int, current_user=Depends(get_current_user_token), db: Session = Dep
             # raise 강제로 error 발생시킨다.
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=f'{id} not found')
-        return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
+        return result
 
     except SQLAlchemyError as error:
         raise HTTPException(

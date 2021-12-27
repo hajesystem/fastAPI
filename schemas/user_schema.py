@@ -1,5 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List
+
+from schemas.info_schema import InfoOut
+from schemas.todo_schema import TodoOut
 
 
 class UserIn(BaseModel):
@@ -10,6 +13,8 @@ class UserIn(BaseModel):
 class UserOut(BaseModel):
     id: str
     user: str
+    info: InfoOut
+    todos: List[TodoOut]
     # class Config():       ─┬─> response_model을 사용하기 위하여 지정
     #   orm_mode = True     ─┘
 
@@ -17,7 +22,10 @@ class UserOut(BaseModel):
         orm_mode = True
 
 
-class UserInfoIn(BaseModel):
-    name: str
-    email: str
-    phone: str
+class UserInfoOut(BaseModel):
+    id: str
+    user: str
+    info: InfoOut
+
+    class Config():
+        orm_mode = True

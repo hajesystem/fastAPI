@@ -2,7 +2,7 @@ from fastapi import FastAPI, status
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 # routers import
-from routers import authentication, basic, user, validation
+from routers import authentication, basic, user, info, validation
 
 description = """
 Python Backend
@@ -34,6 +34,7 @@ app.add_middleware(
 app.include_router(authentication.router)
 app.include_router(basic.router)
 app.include_router(user.router)
+app.include_router(info.router)
 app.include_router(validation.router)
 
 

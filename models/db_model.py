@@ -1,8 +1,8 @@
 from typing import Text
 from sqlalchemy.sql.sqltypes import Date
 from models import Base
-from sqlalchemy import Column, String, Integer, Date, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, Date, Text, ForeignKey
+from sqlalchemy.orm import backref, relationship
 
 
 class UserModel(Base):
@@ -11,6 +11,9 @@ class UserModel(Base):
     user = Column(String(32), unique=True)
     password = Column(String(255))
 
+    info = relationship("InfoModel", back_populates="user", uselist=False)
+    todos = relationship("ToDoModel", back_populates="user")
+
 
 class InfoModel(Base):
     __tablename__ = 'info'
@@ -18,7 +21,10 @@ class InfoModel(Base):
     name = Column(String(80))
     email = Column(String(80), unique=True)
     phone = Column(String(80), unique=True)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    user = relationship('UserModel', back_populates="info")
+    # user = relationship('UserModel', backref=backref('info', uselist=False))
 
 
 class ToDoModel(Base):
@@ -27,4 +33,7 @@ class ToDoModel(Base):
     date = Column(Date)
     titile = Column(String(80))
     descript = Column(Text)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    user = relationship('UserModel', back_populates="todos")
+    # user = relationship('UserModel', backref=backref('todos'))
