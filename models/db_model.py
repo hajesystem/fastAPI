@@ -24,7 +24,6 @@ class InfoModel(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     user = relationship('UserModel', back_populates="info")
-    # user = relationship('UserModel', backref=backref('info', uselist=False))
 
 
 class ToDoModel(Base):
@@ -32,8 +31,7 @@ class ToDoModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date)
     titile = Column(String(80))
-    descript = Column(Text)
+    descript = Column(String(255))
     user_id = Column(Integer, ForeignKey('users.id'))
 
     user = relationship('UserModel', back_populates="todos")
-    # user = relationship('UserModel', backref=backref('todos'))

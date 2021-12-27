@@ -20,12 +20,3 @@ class UserOut(BaseModel):
 
     class Config():
         orm_mode = True
-
-
-class UserInfoOut(BaseModel):
-    id: str
-    user: str
-    info: InfoOut
-
-    class Config():
-        orm_mode = True

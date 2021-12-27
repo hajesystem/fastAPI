@@ -1,8 +1,9 @@
+from datetime import date
 from pydantic import BaseModel
 
 
 class TodoIn(BaseModel):
-    date: str
+    date: date
     title: str
     descript: str
     user_id: int
@@ -10,7 +11,7 @@ class TodoIn(BaseModel):
 
 class TodoOut(BaseModel):
     id: int
-    date: str
+    date: date
     title: str
     descript: str
     user_id: int
