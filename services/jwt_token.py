@@ -1,6 +1,7 @@
 import jwt
 from fastapi import HTTPException, status, Depends, Request
 from datetime import datetime, timedelta
+
 import config
 import sys
 from fastapi.security.utils import get_authorization_scheme_param
@@ -58,7 +59,7 @@ def get_current_user_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, config.SECRET_KEY,
                              algorithms=[config.ALGORITHM])
-        current_user: str = payload['user']
+        current_user = payload['user']
         if current_user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid access token')

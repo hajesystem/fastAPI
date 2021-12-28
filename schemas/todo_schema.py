@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class TodoIn(BaseModel):
     date: date
-    title: str
+    titile: str
     descript: str
     user_id: int
 
@@ -12,9 +12,9 @@ class TodoIn(BaseModel):
 class TodoOut(BaseModel):
     id: int
     date: date
-    title: str
+    titile: str
     descript: str
-    user_id: int
+    # user_id: int
 
     class Config():
         orm_mode = True

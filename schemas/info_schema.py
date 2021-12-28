@@ -5,7 +5,6 @@ class InfoIn(BaseModel):
     name: str
     email: str
     phone: str
-    user_id: int
 
 
 class InfoOut(BaseModel):

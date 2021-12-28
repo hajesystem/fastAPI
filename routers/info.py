@@ -9,6 +9,7 @@ from models import get_db
 from models.db_model import InfoModel
 
 from schemas.info_schema import InfoIn, InfoOut
+from schemas.user_schema import UserToken
 from services.jwt_token import get_current_user_token
 
 router = APIRouter(prefix='/info', tags=['UserInfo'])
@@ -30,7 +31,7 @@ def get_all(current_user=Depends(get_current_user_token), db: Session = Depends(
 def create(info: InfoIn, current_user=Depends(get_current_user_token), db: Session = Depends(get_db)):
     try:
         add_info = insert(InfoModel).values(
-            name=info.name, email=info.email, phone=info.phone, user_id=info.user_id)
+            name=info.name, email=info.email, phone=info.phone, user_id=current_user['id'])
         db.execute(add_info)
         db.commit()
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=jsonable_encoder(info))

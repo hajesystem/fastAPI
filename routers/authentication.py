@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException, status, Depends, Response
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
+from starlette.responses import JSONResponse
 from models.db_model import UserModel
 from models import db_session
 from services.jwt_token import refresh_token, encode_access_token, encode_refresh_token
-from schemas.user_schema import UserIn, UserOut
+from schemas.user_schema import UserToken
 
 # password hashing
 import bcrypt
@@ -16,12 +17,12 @@ from fastapi.encoders import jsonable_encoder
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
-@router.post("/create-token", status_code=status.HTTP_200_OK, response_model=UserOut)
+@router.post("/create-token", status_code=status.HTTP_200_OK)
 # inputtype ==> { username: name, password: password }
 def login(response: Response, user: OAuth2PasswordRequestForm = Depends()):
     try:
         sql = select(UserModel).where(UserModel.user == user.username)
-        check_user: UserIn = db_session.execute(sql).scalar()
+        check_user: UserToken = db_session.execute(sql).scalar()
         # if not 조건 : 먼저 사용하는 이유는 최소 연산을 하기 위하여 false 상태부터 구현한다.
         if not check_user:
             raise HTTPException(
@@ -31,13 +32,15 @@ def login(response: Response, user: OAuth2PasswordRequestForm = Depends()):
         if not check_password:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail='Password is incorrect.')
-        access_token = encode_access_token(user.username)
-        refresh_token = encode_refresh_token(user.username)
+        access_token = encode_access_token(
+            {'id': check_user.id, 'user': check_user.user})
+        refresh_token = encode_refresh_token(
+            {'id': check_user.id, 'user': check_user.user})
         response.set_cookie(key="access_token",
                             value=f"Bearer {access_token}", httponly=True)
         response.set_cookie(key="refresh_token",
                             value=f"Bearer {refresh_token}", httponly=True)
-        return check_user
+        return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(check_user.user))
 
     except SQLAlchemyError as error:
         raise HTTPException(

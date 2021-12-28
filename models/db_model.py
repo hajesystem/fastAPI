@@ -31,7 +31,7 @@ class ToDoModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date)
     titile = Column(String(80))
-    descript = Column(String(255))
+    descript = Column(Text)
     user_id = Column(Integer, ForeignKey('users.id'))
 
     user = relationship('UserModel', back_populates="todos")
